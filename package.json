@@ -1,0 +1,12 @@
+{
+  "name": "migrate",
+  "version": "1.0.0",
+  "description": "Migrates ndla h5ps",
+  "main": "main.js",
+  "dependencies": {
+    "adm-zip": "^0.4.7",
+    "ramda": "^0.22.1"
+  },
+  "devDependencies": {},
+  "author": "tajakobsen"
+}
