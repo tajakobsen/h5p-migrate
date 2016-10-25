@@ -3,7 +3,7 @@ Migration script for h5p content types
 
 # Getting started
 
-* Create a `secret.json` file. And add authentication info for downloading images to it.
+* Create a `secret.json` file with authentication info for downloading images.
 
 ```json
 {

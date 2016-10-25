@@ -9,17 +9,17 @@ var Util = require('./util');
  * @type {Function}
  * @param {String} dist
  * @param {String} src
- * @return {String} destFolder
+ * @return {String} destDirectory
  */
 exports.unpack = R.curry(function(dest, src) {
   var fileName = Util.parseFileName(src);
-  var destFolder = dest + '/' + fileName;
+  var destDirectory = dest + '/' + fileName;
   var zip = new AdmZip(src);
 
-  zip.extractAllTo(destFolder, true);
+  zip.extractAllTo(destDirectory, true);
 
-  console.log('Unziped to: ', destFolder);
-  return destFolder;
+  console.log('Unziped to: ', destDirectory);
+  return destDirectory;
 });
 
 exports.pack = function() {
