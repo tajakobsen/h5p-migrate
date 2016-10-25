@@ -1,16 +1,6 @@
 var fs = require("fs");
 var R = require("ramda");
-
-/**
- * If input is a String, check if it's a url
- *
- * @function
- * @private
- * @type {Function}
- * @param {String}
- * @return {Boolean} if input is a url
- */
-var isUrl = R.both(R.is(String), R.match(/^(https?:\/\/)/));
+var util = require("./util");
 
 /**
  *  Adds the value
@@ -19,24 +9,42 @@ var isUrl = R.both(R.is(String), R.match(/^(https?:\/\/)/));
  * @param {String[]} arr
  * @return {String[]}
  */
-var addIfUrl = function(value, arr){
-  if(isUrl(value)){
-    return R.append(value, arr);
-  } else {
-    return arr;
-  }
+var keepIfUrl = function (arr, value) {
+  return R.concat(arr, util.isUrl(value) ? [value] : []);
 };
+
+/**
+ * Takes values from an object, and groups them by type
+ *
+ * @example
+ * var x = {a: 1, b: 'a'}
+ * // => {"Number": [1], "String": ["a"]}
+ * @param {Array}
+ * @param {Object}
+ */
+var groupValuesByType = R.compose(R.groupBy(R.type), R.values);
 
 /**
  *
  * @function
- * @param {Object} contentMetaData
- * @return
+ * @param {Object} obj
+ * @return {String[]}
  */
-var findUrls = function(contentMetaData) {
-  var values = R.values(contentMetaData);
+var findUrls = function(obj) {
+  const valuesByTypes = groupValuesByType(obj);
 
-  R.reduce(addIfUrl, [], values);
+  // sort values ty type
+  const stringValues = R.prop('String', valuesByTypes) || [];
+  var objectValues = R.prop('Object', valuesByTypes) || [];
+  var arrayValues = R.prop('Array', valuesByTypes) || [];
+  arrayValues = R.filter(R.is(Object), arrayValues);
+  objectValues = R.concat(objectValues, arrayValues);
+
+  // check strings, call object recurivly
+  const urls1 = R.reduce(keepIfUrl, [], stringValues);
+  const urls2 = R.flatten(R.map(findUrls, objectValues));
+
+  return R.concat(urls1, urls2);
 };
 
 exports.findUrls = findUrls;
