@@ -18,6 +18,7 @@ const unzipToTmpDirectory = R.map(Packing.unpack('./tmp/unpacked'));
 /**
  * Downloads images to the tmp directory
  *
+ * @function
  * @type {Function}
  * @private
  * @param {String[]} image paths
@@ -46,7 +47,7 @@ const getH5psInDirectory = R.compose(R.filter(Util.hasH5PFileEnding), getFilePat
  *
  * @param h5pTmpDirectory
  */
-const migrateSingleH5p = function(h5pTmpDirectory){
+const migrateSingleH5p = R.curry(function(config, h5pTmpDirectory){
   // reads content.json
   var contentFileData = Util.readH5pContentJsonFile(h5pTmpDirectory);
 
@@ -54,13 +55,20 @@ const migrateSingleH5p = function(h5pTmpDirectory){
   var imageUrls = R.filter(Util.hasImageFileEnding, h5p.findUrls(contentFileData));
 
   // download images
-  downloadToImageDirectory(imageUrls);
-};
+  //downloadToImageDirectory(imageUrls, config.auth);
+
+  // mutes contentFileData
+  h5p.updateUrls(config.oldDomain, config.newDomain, contentFileData);
+
+  Util.writeH5pContentJsonFile(h5pTmpDirectory, contentFileData);
+});
 
 /**
  * Performs the migration
  */
 exports.execute = function() {
+  var config = Util.getConfig();
+
   // get paths to all h5p files
   var filePaths = getH5psInDirectory('./h5ps/');
 
@@ -68,7 +76,7 @@ exports.execute = function() {
   var tmpFolders = unzipToTmpDirectory(filePaths);
 
   // Iterates over unzipped h5ps, and
-  R.forEach(migrateSingleH5p, tmpFolders);
+  R.forEach(migrateSingleH5p(config), tmpFolders);
 
   console.log('Finished');
 };

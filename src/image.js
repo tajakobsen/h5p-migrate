@@ -3,8 +3,7 @@ var http = require('http'),
   R = require("ramda"),
   Util = require("./util");
 
-exports.download = R.curry(function(dest, path) {
-  var auth = Util.getAuth();
+exports.download = R.curry(function(dest, path, auth) {
   var options = {
     hostname: 'red.ndla.no',
     path: path,

@@ -39,4 +39,4 @@ jspm_packages
 tmp
 .idea
 h5ps
-secret.json
+config.json

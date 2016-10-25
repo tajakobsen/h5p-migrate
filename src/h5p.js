@@ -1,50 +1,68 @@
-var fs = require("fs");
 var R = require("ramda");
 var util = require("./util");
 
 /**
- *  Adds the value
+ * Traverses an object tree, and
  *
- * @param {*} value
- * @param {String[]} arr
- * @return {String[]}
+ * @param func
+ * @param obj
  */
-var keepIfUrl = function (arr, value) {
-  return R.concat(arr, util.isUrl(value) ? [value] : []);
-};
+const traverseObject = R.curry(function(func, obj){
+  var result = [];
+
+  for(var key in obj) {
+    var value = obj[key];
+
+    // If object
+    if(R.is(Object, value)){
+      result = R.concat(result, traverseObject(func, value));
+    }
+    // If array
+    else if(R.is(Array, value)){
+      result = R.concat(result, R.map(traverseObject, value));
+    }
+    // of other
+    else {
+      result = R.append(func(value, key, obj), result);
+    }
+  }
+
+  return result;
+});
 
 /**
- * Takes values from an object, and groups them by type
+ * Returns the string if it's a url, else undefined
  *
- * @example
- * var x = {a: 1, b: 'a'}
- * // => {"Number": [1], "String": ["a"]}
- * @param {Array}
- * @param {Object}
+ * @param value
+ * @returns {String|undefined}
  */
-var groupValuesByType = R.compose(R.groupBy(R.type), R.values);
+const toUrl = value => util.isUrl(value) ? value : undefined;
 
 /**
+ * Returns an array of all urls
  *
  * @function
  * @param {Object} obj
  * @return {String[]}
  */
-var findUrls = function(obj) {
-  const valuesByTypes = groupValuesByType(obj);
+const findUrls = traverseObject(toUrl);
 
-  // sort values ty type
-  const stringValues = R.prop('String', valuesByTypes) || [];
-  var objectValues = R.prop('Object', valuesByTypes) || [];
-  var arrayValues = R.prop('Array', valuesByTypes) || [];
-  arrayValues = R.filter(R.is(Object), arrayValues);
-  objectValues = R.concat(objectValues, arrayValues);
+/**
+ * Traverses an object, and updates the domain
+ *
+ * @param {String} the old url that should be replaced
+ * @param {String} the new url
+ * @param {Object} The content.json
+ */
+const updateUrls = R.curry(function(oldDomain, newDomain, obj){
+  const replaceUrl = R.replace(oldDomain, newDomain);
 
-  // check strings, call object recurivly
-  const urls1 = R.reduce(keepIfUrl, [], stringValues);
-  const urls2 = R.flatten(R.map(findUrls, objectValues));
+  traverseObject((value, key, obj) => {
+    if(util.isUrl(value)) {
+      obj[key] = replaceUrl(value);
+    }
+  }, obj);
+});
 
-  return R.concat(urls1, urls2);
-};
-
+exports.updateUrls = updateUrls;
 exports.findUrls = findUrls;

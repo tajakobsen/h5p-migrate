@@ -2,6 +2,17 @@ var R = require("ramda"),
     fs = require("fs");
 
 /**
+ * Reads a file, parse it as json, and return object
+ *
+ * @param {String} path The path of the file to read
+ * @return {Object} json-object in file
+ */
+const readFileAsJson = function(path){
+  return JSON.parse(fs.readFileSync(path, 'utf8'));
+};
+
+
+/**
  * Parses a path or url for the file name.
  *
  * @type {Function}
@@ -37,20 +48,10 @@ exports.hasImageFileEnding = R.test(/\.(gif|jpg|jpeg|tiff|png)$/i);
 exports.hasH5PFileEnding = R.test(/\.(h5p)$/i);
 
 /**
- * Reads a file, parse it as json, and return object
- *
- * @param {String} path The path of the file to read
- * @return {Object} json-object in file
- */
-exports.readFileAsJson = function(path){
-  return JSON.parse(fs.readFileSync(path, 'utf8'));
-};
-
-/**
  * Reads the secret.conf file, and returns the auth param
  */
-exports.getAuth = function () {
-  return exports.readFileAsJson('./secret.json').auth;
+exports.getConfig = function () {
+  return readFileAsJson('./config.json');
 };
 
 /**
@@ -60,5 +61,10 @@ exports.getAuth = function () {
  * @return {Object}
  */
 exports.readH5pContentJsonFile = function(h5pTmpDirectory){
-  return exports.readFileAsJson(h5pTmpDirectory + '/content/content.json');
+  return readFileAsJson(h5pTmpDirectory + '/content/content.json');
+};
+
+
+exports.writeH5pContentJsonFile = function(h5pTmpDirectory, content){
+  return fs.writeFileSync(h5pTmpDirectory + '/content/content.json', JSON.stringify(content));
 };
