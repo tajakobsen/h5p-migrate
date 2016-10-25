@@ -1,13 +1,13 @@
 var http = require('http'),
   fs = require('fs'),
-  R = require("ramda")
+  R = require("ramda"),
   Util = require("./util");
 
-exports.download = R.curry(function(dest, path) {
+exports.download = R.curry(function(dest, path, auth) {
   var options = {
     hostname: 'red.ndla.no',
     path: path,
-    auth: '<password>'
+    auth: auth
   };
 
   var fileName = Util.parseFileName(path);
@@ -23,8 +23,11 @@ exports.download = R.curry(function(dest, path) {
 
     res.on('end', () => {
       fs.writeFile(fileDest, imagedata, 'binary', function(err){
-        if (err) throw err;
-        console.log(`Image saved to: ${fileDest}`);
+        if (err) {
+          throw err;
+        } else {
+          console.log(`Image saved to: ${fileDest}`);
+        }
       })
     })
   });
